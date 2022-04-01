@@ -76,19 +76,19 @@ $(document).ready(function(){
 
 # Sidebar {data-width=80, .sidebar}
 <ul id="sidebar_ul">
-  <li><a href="https://cnftstats.github.io/adapes">ApeSociety</a></li>
-  <li><a href="https://cnftstats.github.io/bcrc">BCRC</a></li>
-  <li><a href="https://cnftstats.github.io/bossplanet">BossPlanet</a></li>
-  <li><a href="https://cnftstats.github.io/chilledkongs">ChilledKongs</a></li>
-  <li id="currentProject"><a href="https://cnftstats.github.io/claynation">Clay Nation</a></li>
-  <li><a href="https://cnftstats.github.io/discosolaris">DiscoSolaris</a></li>
-  <li><a href="https://cnftstats.github.io/mocossi">Mocossi</a></li>
-  <li><a href="https://cnftstats.github.io/pavia">Pavia</a></li>
-  <li><a href="https://cnftstats.github.io/spacebudz">SpaceBudz</a></li>
+<li><a href="https://cnftstats.github.io/adapes">ApeSociety</a></li>
+<li><a href="https://cnftstats.github.io/bcrc">BCRC</a></li>
+<li><a href="https://cnftstats.github.io/bossplanet">BossPlanet</a></li>
+<li><a href="https://cnftstats.github.io/chilledkongs">ChilledKongs</a></li>
+<li id="currentProject"><a href="https://cnftstats.github.io/claynation">Clay Nation</a></li>
+<li><a href="https://cnftstats.github.io/discosolaris">DiscoSolaris</a></li>
+<li><a href="https://cnftstats.github.io/mocossi">Mocossi</a></li>
+<li><a href="https://cnftstats.github.io/pavia">Pavia</a></li>
+<li><a href="https://cnftstats.github.io/spacebudz">SpaceBudz</a></li>
 </ul>
 
 # Floor {data-icon="ion-arrow-graph-up-right"}
-## Column 1 {data-width=650 .tabset}
+## Column 1 {data-width=700 .tabset}
 ### Listings
 ```{r, fig.width=9, fig.height=7}
 # Is there enough data?
@@ -113,11 +113,11 @@ X[, data_when := fcase(
 data_when_order <- X[order(-data_date), unique(data_when)]
 X[, data_when := factor(data_when, levels = data_when_order)]
 
-X[price %between% c(0,     999),   price_range := trunc(price/50)*50]
-X[price %between% c(1000,  4999),  price_range := trunc(price/500)*500]
-X[price %between% c(5000,  9999),  price_range := trunc(price/1000)*1000]
-X[price %between% c(10000, 14999), price_range := trunc(price/5000)*5000]
-X[price >= 15000,                  price_range := 15000]
+X[price %between% c(0, 1999),      price_range := trunc(price/250)*250]
+X[price %between% c(2000, 4999),   price_range := trunc(price/500)*500]
+X[price %between% c(5000, 9999),   price_range := trunc(price/1000)*1000]
+X[price %between% c(10000, 29999), price_range := trunc(price/10000)*10000]
+X[price >= 30000,                  price_range := 30000]
 X <- X[complete.cases(price_range), .(price_range, price, market, data_when)]
 
 CAP <- X[, .(floor = min(price), listings = .N), data_when]
@@ -129,11 +129,11 @@ CAP <- X[, .(floor = min(price), listings = .N), data_when]
 
 
 X <- X[, .N, .(price_range, market, data_when)][order(price_range)]
-X[price_range %between% c(0,     999),   x_label := paste0(price_range, "-", price_range + (50-1))]
-X[price_range %between% c(1000,  4999),  x_label := paste0(price_range, "-", price_range + (500-1))]
-X[price_range %between% c(5000,  9999),  x_label := paste0(price_range, "-", price_range + (1000-1))]
-X[price_range %between% c(10000, 14999), x_label := paste0(price_range, "-", price_range + (5000-1))]
-X[price_range >= 15000,                    x_label := "15000+"]
+X[price_range %between% c(0, 1999),    x_label := paste0(price_range, "-", price_range + (250-1))]
+X[price_range %between% c(2000, 4999), x_label := paste0(price_range, "-", price_range + (500-1))]
+X[price_range %between% c(5000, 9999), x_label := paste0(price_range, "-", price_range + (1000-1))]
+X[price_range %between% c(10000, 29999), x_label := paste0(price_range, "-", price_range + (10000-1))]
+X[price_range >= 30000,                x_label := "30000+"]
 
 .X <- X[, .(price_range, x_label)] %>% unique %>% .[order(price_range)]
 X[, x_label := factor(x_label, levels = .X$x_label)]
@@ -145,10 +145,10 @@ ggplot(X, aes(x_label, N, fill = market, alpha = data_when)) +
   geom_text(aes(label = stat(y), group = x_label),
             stat = 'summary', fun = sum, vjust = -.5, hjust = +.55,
             color = "steelblue4", size = 3) +
+  scale_y_continuous(expand = expansion(mult = c(0, .1))) +
   scale_fill_manual(values = c("jpg.store" = "steelblue3", "cnft.io" = "steelblue4")) +
   scale_alpha_manual(values = c(0.9, 0.7), guide = "none") +
   labs(x = "Price range", y = "Number of listings", fill = "", caption = .caption) +
-  theme_minimal() +
   theme(axis.text.x = element_text(angle = -45, vjust = +.5, hjust = 0,
                                    color = "grey50", size = 8),
         axis.text.y = element_text(color = "grey50", size = 8),
@@ -168,12 +168,11 @@ X[, sold_time := trunc(sold_at_days)]
 X[, sold_time := fcase(trunc(sold_at_days) == 0, "0-24h ago",
                        trunc(sold_at_days) == 1, "24-48h ago",
                        trunc(sold_at_days) == 2, "48-72h ago")]
-X[price %between% c(0,     999),   price_range := trunc(price/50)*50]
-X[price %between% c(1000,  4999),  price_range := trunc(price/500)*500]
-X[price %between% c(5000,  9999),  price_range := trunc(price/1000)*1000]
-X[price %between% c(10000, 14999), price_range := trunc(price/5000)*5000]
-X[price >= 15000,                  price_range := 15000]
-X <- X[complete.cases(price_range), .(price_range, price, market, sold_time)]
+X[price %between% c(0, 1999),      price_range := trunc(price/250)*250]
+X[price %between% c(2000, 4999),   price_range := trunc(price/500)*500]
+X[price %between% c(5000, 9999),   price_range := trunc(price/1000)*1000]
+X[price %between% c(10000, 29999), price_range := trunc(price/10000)*10000]
+X[price >= 30000,                  price_range := 30000]
 
 CAP <- X[, .(sale_range = sprintf("%s-%s", min(price), max(price)),
              sales = .N, volume = sum(price)/1000), sold_time]
@@ -183,11 +182,11 @@ CAP <- X[, .(sale_range = sprintf("%s-%s", min(price), max(price)),
                    "\nSource: https://cnftstats.github.io/")
 
 X <- X[, .N, .(price_range, market, sold_time)][order(price_range)]
-X[price_range %between% c(0,     999),   x_label := paste0(price_range, "-", price_range + (50-1))]
-X[price_range %between% c(1000,  4999),  x_label := paste0(price_range, "-", price_range + (500-1))]
-X[price_range %between% c(5000,  9999),  x_label := paste0(price_range, "-", price_range + (1000-1))]
-X[price_range %between% c(10000, 14999), x_label := paste0(price_range, "-", price_range + (5000-1))]
-X[price_range >= 15000,                    x_label := "15000+"]
+X[price_range %between% c(0, 1999),    x_label := paste0(price_range, "-", price_range + (250-1))]
+X[price_range %between% c(2000, 4999), x_label := paste0(price_range, "-", price_range + (500-1))]
+X[price_range %between% c(5000, 9999), x_label := paste0(price_range, "-", price_range + (1000-1))]
+X[price_range %between% c(10000, 29999), x_label := paste0(price_range, "-", price_range + (10000-1))]
+X[price_range >= 30000,                x_label := "30000+"]
 
 .X <- X[, .(price_range, x_label)] %>% unique %>% .[order(price_range)]
 X[, x_label := factor(x_label, levels = .X$x_label)]
@@ -200,12 +199,11 @@ ggplot(X, aes(x_label, N, fill = market, alpha = sold_time)) +
   geom_text(aes(label = stat(y), group = x_label),
             stat = 'summary', fun = sum, vjust = -.5, hjust = +.55,
             color = "springgreen4", size = 3) +
-  scale_y_continuous(expand = c(0, 20)) +
+  scale_y_continuous(expand = expansion(mult = c(0, .1))) +
   scale_fill_manual(values = c("jpg.store" = "springgreen3", "cnft.io" = "springgreen4")) +
   scale_alpha_manual(values = c("0-24h ago" = .9, "24-48h ago" = .8, "48-72h ago" = .7), guide = "none") +
   labs(x = "Price range", y = "Number of sales", fill = "",
        caption = .caption) +
-  theme_minimal() +
   theme(axis.text.x = element_text(angle = -45, vjust = +.5, hjust = 0,
                                    color = "grey50", size = 8),
         axis.text.y = element_text(color = "grey50", size = 8),
@@ -220,15 +218,15 @@ ggplot(X, aes(x_label, N, fill = market, alpha = sold_time)) +
 ```
 
 
-## Column 2 {data-width=350}
+## Column 2 {data-width=300}
 ### Sweep that floor: Lowest listings
 ```{r}
 X <- DT[order(price)][1:15]
-X[, img := sprintf('<img src="%s%s.png" class="img_html">', img_link, asset_number)]
+X[, img := sprintf('<img src="%s%d.png" class="img_html">', img_link, asset_number)]
 X[, img := sprintf('<a href="%s" target="_blank">%s</br>#%s</a>', link, img, asset_number)]
 
 X <- X[, .(img, price, asset_rank, market)]
-X <- X[complete.cases(X)]
+
 
 datatable(X, class = 'compact stripe hover nowrap',
           options = list(dom = "t",
@@ -244,73 +242,107 @@ datatable(X, class = 'compact stripe hover nowrap',
   formatStyle(columns = 1:ncol(X), fontSize = '90%')
 ```
 
+> Click on the image to open the listing.
+
 # Rank {data-icon="fa-signal"}
-## Column 1 {data-width=600, .tabset}
+## Column 1 {data-width=700, .tabset}
 ### Listings x rank
 ```{r}
+min_x <- 1
+max_x <- RAR[, max(asset_rank)]
+min_y <- 0
 max_y <- max(DT[, quantile(price, probs = .90)], DTS[, max(price)])
 X <- DT[price <= max_y]
 scale_x <- c(seq(0, 2000, 250), seq(2500, 10000, 500))
 scale_x[scale_x == 0] <- 1
 scale_x[scale_x == 10000] <- 9999
-gg <- ggplot(X, aes(asset_rank, price, shape = sc, customdata = link,
+
+X[, img := sprintf("https://raw.githubusercontent.com/cnftstats/images/main/claynation/claynation%s_large.png", asset_number)]
+
+X[, asset_traits_nice := gsub(":", ": ", gsub(" — ", "</br>", asset_traits))]
+
+X[, custom_data := sprintf('{
+"mytooltip":"<div id=\'tooltip\' style=\'color:#9e9e9e; font-size:13px; background-color:white\'>
+              <img src=\'%s\' width=190></img>
+              </br><span style=\'color:#7d188f\'><b>%s</b></span>
+              </br><b>%.0f ada</b>
+              </br>Rank: %s
+              </br></br>%s
+             </div>",
+"market_link":"%s"
+}', img, asset, price, asset_rank, asset_traits_nice, link) %>% gsub("\n", "", .)]
+
+gg <- ggplot(X, aes(asset_rank, price, customdata = custom_data,
                     text = paste0(asset,
-                                  "</br></br>", paste("Price:", price,
-                                                      "</br>Last offer:", last_offer,
-                                                      "</br>Rank:", asset_rank,
-                                                      "</br>Market:", market)))) +
-  geom_point(color = "steelblue4", alpha = .6) +
-  scale_x_reverse(breaks = scale_x, expand = c(0.03, 0)) +
-  scale_y_continuous(n.breaks = 15, limits = c(0, max_y)) +
-  labs(x = "Rank", y = "Listing price", color = "Market", shape = "Smart contract") +
-  theme(legend.title = element_text(size = 10))
+                                  "</br></br>", paste("Price:", round(price, 0),
+                                                      "</br>Rank:", asset_rank)))) +
+  geom_point(alpha = .6, color = "steelblue4") +
+  scale_x_reverse(breaks = scale_x, expand = c(0.03, 0), limits = c(max_x, min_x)) +
+  scale_y_continuous(n.breaks = 15, limits = c(min_y, max_y)) +
+  labs(x = "Rank", y = "Listing price", color = "Class") +
+  theme(legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9))
 
 ggplotly(gg, tooltip = "text") %>% 
-  layout(legend = list(x = .025, y = .97, bgcolor = 'rgba(255,255,255,0.6)'),
-         xaxis = list(tickangle = 45)) %>%
-  onRender(js)
+  layout(legend = list(x = 1, y = 0, bgcolor = 'rgba(255,255,255,0.6)'),
+         xaxis = list(tickangle = 45),
+         margin = list(r = 200)) %>%
+  config(scrollZoom = TRUE, displaylogo = FALSE) %>% 
+  onRender(readLines("hover_tooltip.js"))
 ```
 
-> Only listings below `r max_y` ada are displayed. Try clicking on the legend or datapoints.
+> Only listings below `r as.character(max_y)` ada are displayed. Try clicking on the legend or datapoints.
 
-### Sales x rank
+### Sales x rank (last 24h)
 ```{r}
 max_y <- max(DT[, quantile(price, probs = .90)], DTS[, max(price)])
-min_y <- min(DT[, min(price)], DTS[, min(price)])
-X <- DTS[price <= max_y]
-X[, sold_time := trunc(sold_at_days)]
-X[, sold_time := fcase(trunc(sold_at_days) == 0, "0-24h ago",
-                       trunc(sold_at_days) == 1, "24-48h ago",
-                       trunc(sold_at_days) == 2, "48-72h ago")]
-scale_x <- c(1, seq(1000, 9000, 1000), 9999)
-gg <- ggplot(X, aes(asset_rank, price, color = sold_time, alpha = sold_time,
+X <- DTS[price <= max_y & trunc(sold_at_days) == 0]
+
+scale_x <- c(seq(0, 2000, 250), seq(2500, 10000, 500))
+scale_x[scale_x == 0] <- 1
+scale_x[scale_x == 10000] <- 9999
+
+X[, img := sprintf("https://raw.githubusercontent.com/cnftstats/images/main/claynation/claynation%s_large.png", asset_number)]
+
+X[, asset_traits_nice := gsub(":", ": ", gsub(" — ", "</br>", asset_traits))]
+
+X[, custom_data := sprintf('{
+"mytooltip":"<div id=\'tooltip\' style=\'color:#9e9e9e; font-size:13px; background-color:white\'>
+              <img src=\'%s\' width=190></img>
+              </br><span style=\'color:#7d188f\'><b>%s</b></span>
+              </br>Sold for <b>%.0f ada</b> on %s (%.0fh ago)
+              </br>Rank: %s
+              </br></br>%s
+             </div>",
+"market_link":""
+}', img, asset, price, market, sold_at_hours, asset_rank, asset_traits_nice) %>% gsub("\n", "", .)]
+
+gg <- ggplot(X, aes(asset_rank, price, customdata = custom_data,
                     text = paste0(asset,
-                                  "</br></br>", paste("Price:", price,
-                                                      "</br>Sold time:", sold_time,
-                                                      "</br>Rank:", asset_rank,
-                                                      "</br>Rarity:", asset_rarity,
-                                                      "</br>Market:", market)))) +
-  geom_point(color = "springgreen4") +
-  scale_x_reverse(breaks = scale_x, expand = c(0.03, 0)) +
+                                  "</br></br>", paste("Price:", round(price, 0),
+                                                      "</br>Rank:", asset_rank)))) +
+  geom_point(alpha = .6, color = "springgreen4") +
+  scale_x_reverse(breaks = scale_x, expand = c(0.03, 0), limits = c(max_x, min_x)) +
   scale_y_continuous(n.breaks = 15, limits = c(min_y, max_y)) +
-  scale_alpha_manual(values = c("0-24h ago" = 1,
-                                "24-48h ago" = 0.6,
-                                "48-72h ago" = 0.2)) +
-  labs(x = "Rank", y = "Sold price", color = "Sold time", alpha = "Sold time") +
-  theme(legend.title = element_text(size = 10))
+  labs(x = "Rank", y = "Sales price", color = "Class") +
+  theme(legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9))
 
 ggplotly(gg, tooltip = "text") %>% 
-  layout(legend = list(x = .025, y = .97, bgcolor = 'rgba(255,255,255,0.6)'),
-         xaxis = list(tickangle = 45))
+  layout(legend = list(x = 1, y = 0, bgcolor = 'rgba(255,255,255,0.6)'),
+         xaxis = list(tickangle = 45),
+         margin = list(r = 200)) %>%
+  config(scrollZoom = TRUE, displaylogo = FALSE) %>% 
+  onRender(readLines("hover_tooltip.js"))
 ```
 
-> Only listings below `r max_y` ada are displayed.
+> Only listings below `r as.character(max_y)` ada are displayed.
 
-## Column 2 {data-width=500}
+## Column 2 {data-width=300}
 ### Floor listings by rank range
 ```{r}
 X <- DT[, .SD[price == min(price)], rank_range][order(rank_range)]
-X[, img := sprintf('<img src="%s%s.png" class="img_html">', img_link, asset_number)]
+X[, img := sprintf('<img src="%s%d.png" class="img_html">', img_link, asset_number)]
 X[, img := sprintf('<a href="%s" target="_blank">%s</br>#%s</a>', link, img, asset_number)]
 
 X <- X[, .(rank_range, img, price, asset_rank, market)]
@@ -324,7 +356,7 @@ datatable(X, class = 'compact stripe hover',
                          bPaginate = FALSE,
                          info = FALSE,
                          columnDefs = list(list(className = 'dt-right', targets = "_all"))),
-          colnames = c("Rank</br>range", "Asset", "Price", "Rank", "Market"),
+          colnames = c("Rank range", "Asset", "Price", "Market"),
           rownames = FALSE,
           escape = FALSE) %>%
   formatStyle(columns = 1:ncol(X), fontSize = '90%')
@@ -381,12 +413,10 @@ datatable(X, class = 'compact stripe hover',
 
 > Use the search box to look for your NFT. For example, search `#3000`.
 
-# Support this project {data-icon="ion-heart"}
+# Buy me a coffee {data-icon="ion-coffee"}
 ## Column 1
 ### Thanks for your support!
-You can support this project by spreading the word about it to the CNFT community! :-)
-
-Tips would also be greatly appreciated! This would encourage me to maintain and improve the website (for instance, to get a better hosting service).  
+Tips would be greatly appreciated! This would encourage me to maintain and improve the website (for instance, to get a better hosting service).  
 
 ![Tip me](tipme.svg){width=200px}  
 **addr1qx04gwr9kazlpnm6t8a8h0pggk440zs3fdayct732a0wwwd3usryhnh52pevj5xy7cgp9d4jnywar6g0tnct58dyfukszl25n8** 
