@@ -76,15 +76,16 @@ $(document).ready(function(){
 
 # Sidebar {data-width=80, .sidebar}
 <ul id="sidebar_ul">
-<li><a href="https://cnftstats.github.io/adapes">ApeSociety</a></li>
-<li><a href="https://cnftstats.github.io/bcrc">BCRC</a></li>
-<li><a href="https://cnftstats.github.io/bossplanet">BossPlanet</a></li>
-<li><a href="https://cnftstats.github.io/chilledkongs">ChilledKongs</a></li>
-<li id="currentProject"><a href="https://cnftstats.github.io/claynation">Clay Nation</a></li>
-<li><a href="https://cnftstats.github.io/discosolaris">DiscoSolaris</a></li>
-<li><a href="https://cnftstats.github.io/mocossi">Mocossi</a></li>
-<li><a href="https://cnftstats.github.io/pavia">Pavia</a></li>
-<li><a href="https://cnftstats.github.io/spacebudz">SpaceBudz</a></li>
+  <li><a href="https://cnftstats.github.io/adapes">ApeSociety</a></li>
+  <li><a href="https://cnftstats.github.io/bcrc">BCRC</a></li>
+  <li><a href="https://cnftstats.github.io/bossplanet">BossPlanet</a></li>
+  <li><a href="https://cnftstats.github.io/chilledkongs">ChilledKongs</a></li>
+  <li id="currentProject"><a href="https://cnftstats.github.io/claynation">Clay Nation</a></li>
+  <li><a href="https://cnftstats.github.io/discosolaris">DiscoSolaris</a></li>
+  <li><a href="https://cnftstats.github.io/mocossi">Mocossi</a></li>
+  <li><a href="https://cnftstats.github.io/pavia">Pavia</a></li>
+  <li><a href="https://cnftstats.github.io/spacebudz">SpaceBudz</a></li>
+  <li><a href="https://cnftstats.github.io/vox">VoxCats</a></li>
 </ul>
 
 # Floor {data-icon="ion-arrow-graph-up-right"}
@@ -118,7 +119,6 @@ X[price %between% c(2000, 4999),   price_range := trunc(price/500)*500]
 X[price %between% c(5000, 9999),   price_range := trunc(price/1000)*1000]
 X[price %between% c(10000, 29999), price_range := trunc(price/10000)*10000]
 X[price >= 30000,                  price_range := 30000]
-X <- X[complete.cases(price_range), .(price_range, price, market, data_when)]
 
 CAP <- X[, .(floor = min(price), listings = .N), data_when]
 .caption <- paste0(
@@ -346,7 +346,6 @@ X[, img := sprintf('<img src="%s%d.png" class="img_html">', img_link, asset_numb
 X[, img := sprintf('<a href="%s" target="_blank">%s</br>#%s</a>', link, img, asset_number)]
 
 X <- X[, .(rank_range, img, price, asset_rank, market)]
-X <- X[complete.cases(X)]
 
 datatable(X, class = 'compact stripe hover',
           options = list(dom = "t",
@@ -375,7 +374,6 @@ X[, img := sprintf('<a href="%s" target="_blank">%s</br>#%s</a>', link, img, ass
 X <- X[, .(trait_category, trait, img, price, asset_rank, market, asset_traits)]
 
 X <- X[order(-price)]
-X <- X[complete.cases(X)]
 
 datatable(X, class = 'compact stripe hover',
           options = list(dom = "t",
